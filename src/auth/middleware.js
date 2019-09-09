@@ -49,6 +49,7 @@ module.exports = (req, res, next) => {
    * @private
    */
   function _authBearer(authString){
+
     return User.authenticateToken(authString)
       .then( (user) => _authenticate(user) )
       .catch(next);
@@ -60,6 +61,7 @@ module.exports = (req, res, next) => {
    * @private
    */
   function _authenticate(user) {
+
     if(user) {
       req.user = user;
       req.token = user.generateToken();

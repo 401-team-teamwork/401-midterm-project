@@ -9,7 +9,6 @@ const authRouter = express.Router();
 
 const User = require('./users-model.js');
 const auth = require('./middleware.js');
-const oauth = require('./oauth/google.js');
 
 /**
  * Sign up new user
@@ -57,20 +56,6 @@ authRouter.post('/signin', auth, (req, res, next) => {
 authRouter.post('/key', auth, (request, response, next) => {
   let key = request.user.generateToken('key');
   response.status(200).send(key);
-});
-
-/**
- * Redirect after oauth
- * @route Get /oauth
- * @returns {object} 200
- * @returns {Error}  default - Unexpected error
- */
-authRouter.get('/oauth', (req,res,next) => {
-  oauth.authorize(req)
-    .then( token => {
-      res.status(200).send(token);
-    })
-    .catch(next);
 });
 
 module.exports = authRouter;

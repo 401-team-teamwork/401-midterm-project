@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../auth/middleware');
-
-const modelLoader = require('../middleware/model-loader');
-
-router.param('model', modelLoader);
-
 /**
  * This function gets all the objects
  * @route GET /api/v1/:model
