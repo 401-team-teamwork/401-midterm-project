@@ -30,18 +30,13 @@ class Game {
       resultsStatus: '',
       wordsPerMinute: 0,
     };
-    this.text = generateString();
+    this.text = this.generateString();
   }
 
   generateString(){
     return sG.take(1);
   }
 
-  wordsPerMinute(text, startTime, endTime){
-    let length = text.split(' ').length;
-    let time = endTime - startTime;
-    return length/(time/60000);
-  }
 
   calculateWinner(player1WPM, player2WPM){
     if(this.player1.wordsPerMinute > this.player2.wordsPerMinute){

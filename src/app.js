@@ -34,18 +34,23 @@ socketIoServer.on('connection', socket => {
     if(user1 !== null && user2 !== null){
       socket.close();
     }
-    if(user1 === null){
-      let user1 = player;
+    else if(user1 === null){
+      user1 = {name: 'trae'};
     } else {
-      user2 = player;
+      user2 = {name: 'Josh'};
     }
-    if(user1 !== null && user2 !== null){
+    console.log(user1, user2);
+    socket.emit('log', player.name);
+    if(user1 && user2 ){
       //start the game
       let game = new Game(user1, user2);
-      socket.broadcast.emit('new-game', game);
+      console.log(game.player2, game.player1);
+      socketIoServer.local.emit('new-game', game);
     }
-    socket.emit('log', player.name);
+
   });
+
+
 
   socket.on('file-save', object => {
     console.log('File has been saved');

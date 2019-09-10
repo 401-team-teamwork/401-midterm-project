@@ -7,7 +7,7 @@ const API_URL = 'http://localhost:8080';
 
 const server = socketIo.connect(`${API_URL}`);
 
-let user = {name: 'Jessica'};
+//let user = {name: 'Jessica'};
 
 server.emit('new-player', user);
 
@@ -17,5 +17,6 @@ server.on('log', name => {
 
 server.on('new-game', game => {
   let view = new View(game, user);
+  console.log('New Game!');
   view.init();
 });
