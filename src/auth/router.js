@@ -42,6 +42,7 @@ authRouter.post('/signup', (req, res, next) => {
 authRouter.post('/signin', auth, (req, res, next) => {
   res.cookie('auth', req.token);
   res.status(200).send(req.token);
+
 });
 
 /**
@@ -58,4 +59,9 @@ authRouter.post('/key', auth, (request, response, next) => {
   response.status(200).send(key);
 });
 
+
+
+
+
 module.exports = authRouter;
+

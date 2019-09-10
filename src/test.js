@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
 
@@ -34,7 +33,9 @@ function end() {
   console.log(` You typed ${results} \n Correct: ${correct} \n Incorrect: ${incorrect}`);
   //generate stats
   //add data to DB
+
 }
+
 
 function init(){
   stdin.setRawMode(true);
