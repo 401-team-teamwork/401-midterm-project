@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+// #!/usr/bin/env node
 
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
-const Game = require('gameModel');
+const Game = require('./gameModel');
 
 color.setTheme({
   correct: 'green',
@@ -14,6 +14,7 @@ const stdin = process.stdin;
 const stdout = process.stdout;
 
 class gameView{
+
   constructor(Game, player){
     this.game = Game;
     this.player = player;
@@ -22,7 +23,8 @@ class gameView{
   end() {
     stdout.write(`\n You took ${(this.game.player.endTime - this.game.player.startTime)/1000} Seconds`);
     stdout.write(` You typed ${this.game.player.results} \n Correct: ${this.game.player.correct} \n Incorrect: ${this.game.player.incorrect}`);
-    //generate stats
+    this.game.player.wordsPerMinute = this.game.wordsPerMinute();
+
     //add data to DB
   }
 

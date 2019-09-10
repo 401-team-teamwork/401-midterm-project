@@ -43,6 +43,17 @@ class Game {
     return length/(time/60000);
   }
 
+  calculateWinner(player1WPM, player2WPM){
+    if(this.player1.wordsPerMinute > this.player2.wordsPerMinute){
+      return this.player1;
+    } else if (this.player2.wordsPerMinute > this.player1.wordsPerMinute){
+      return this.player2;
+    } else {
+      return 'Tie';
+    }
+
+  }
+
 }
 
 module.exports = Game;
