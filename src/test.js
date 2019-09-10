@@ -2,6 +2,8 @@
 
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
+const SG = require('sentence-generator');
+const sG = SG('./words.txt');
 
 color.setTheme({
   correct: 'green',
@@ -12,6 +14,7 @@ color.setTheme({
 const stdin = process.stdin;
 const stdout = process.stdout;
 
+
 let text;
 let cursor = 0;
 let results = '';
@@ -20,18 +23,22 @@ let incorrect = 0;
 let startTime;
 let endTime;
 let elapsedTime;
+//this string will track if each letter is correct or incorrect as entered by the user
+let resultsStatus = '';
 
+
+function generateString() {
+  return sG.take(1);
+}
 
 function start() {
-  text = 'Hello, Josh';
-  //generate a random String and set it
+  text = generateString();
   //do other things?
 }
 
 function end() {
-
-  console.log(`\n You took ${(endTime - startTime)/1000} Seconds`);
-  console.log(` You typed ${results} \n Correct: ${correct} \n Incorrect: ${incorrect}`);
+  stdout.write(`\n You took ${(endTime - startTime)/1000} Seconds`);
+  stdout.write(` You typed ${results} \n Correct: ${correct} \n Incorrect: ${incorrect}`);
   //generate stats
   //add data to DB
 }
@@ -49,27 +56,38 @@ function init(){
       process.exit();
     }
     //Let Delete work to fix errors
-    if (key === '\u007f'){
+    else if (key === '\u007f'){
+      //if the last letter you typed was wrong...
+      if(resultsStatus.slice(-1) === 'f'){
+        incorrect--;
+      }
+      //if the last letter you typed was correct
+      else if (resultsStatus.slice(-1) === 't'){
+        correct--;
+      }
       results = results.slice(0, -1);
-      incorrect -= 2;
       cursor -= 2;
+      //move the cursor back
       stdout.write(ansiEscapes.cursorBackward(1));
     }
-    if (key === text[cursor]) {
+    else if (key === text[cursor]) {
+      resultsStatus += 't';
       results += key;
       correct++;
       stdout.write(key.correct);
     } else {
+      resultsStatus += 'f';
       results += key;
       incorrect++;
       stdout.write(key.incorrect);
     }
-
     cursor++;
+    //if the user has reached the end of the string, stop reading input
     if(cursor >= text.length){
       endTime = Date.now();
+      stdin.pause(); 
       end();
-      process.exit();
+
     }
   });
   cursor = 0;
