@@ -9,13 +9,13 @@ const chalk = require('chalk');
 clear();
 console.log(
   chalk.blueBright(
-figlet.textSync('SUPERTYPE:    REVOLUTION', {font:'ANSI Shadow', horizontalLayout: 'full' })
+figlet.textSync('SUPERTYPE :   REVOLUTION', {font:'ANSI Shadow', horizontalLayout: 'full' })
   )
 );
 
 const run = async () => {
-const userStuff = await getUserNameAndPassword();
+  const userStuff = await getUserNameAndPassword();
   console.log(userStuff);
-}
+};
 run();
 
