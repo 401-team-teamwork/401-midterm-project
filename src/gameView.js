@@ -2,123 +2,147 @@
 
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
-// const Game = require('./gameModel');
-
-color.setTheme({
-  correct: 'green',
-  incorrect: 'red',
-  textType: 'blue',
-});
-
-const stdin = process.stdin;
-const stdout = process.stdout;
-
 const socketIo = require('socket.io-client');
 const getUserNameAndPassword = require('./userPrompts').getUserNameAndPassword;
 const clear = require('clear');
 const figlet = require('figlet');
 const chalk = require('chalk');
 
+color.setTheme({
+  correct: 'green',
+  incorrect: 'red',
+});
 
 const API_URL = 'http://localhost:8080';
+const EXIT_GAME = '\u0003';
+const DELETE_LAST_ENTRY = '\u007f';
+const INDICATE_INCORRECT_KEYPRESS = 'f';
+const INDICATE_CORRECT_KEYPRESS = 't';
+const ONE_MINUTE = 60000;
+const ONE_SECOND = 1000;
 
 const server = socketIo.connect(`${API_URL}`);
+const stdin = process.stdin;
+const stdout = process.stdout;
 
 let user;
 
 class gameView{
 
-  constructor(game, user){
-    this.game = game;
-    this.user = user;
-    // this.player = player;
-    this.player = this.setPlayer();
-  }
-  //check the user.name against game.player.user
-
-  setPlayer(){
-    if(this.user.username === this.game.player1.user){
-      return this.game.player1;
-    } else {
-      return this.game.player2;
-    }
-  }
-
-  calculateWordsPerMinute(text, startTime, endTime){
-    let wordsArray = text.split(' ');
-    let length = wordsArray.length;
-    let time = endTime - startTime;
-    return length/(time/60000);
+  constructor(string, name){
+    this.stringToType = string;
+    this.player = {
+      name: name,
+      currentCursorPosition: 0,
+      typedString: '',
+      correctEntries: 0,
+      incorrectEntries: 0,
+      startTime: null,
+      endTime: null,
+      //this string will track if each letter is correct or incorrect as entered by the user
+      typedStringInBooleanForm: '',
+      wordsPerMinute: 0,
+      finished: false,
+    };
   }
 
-  end() {
-    stdout.write(`\n You took ${(this.player.endTime - this.player.startTime)/1000} Seconds`);
-    stdout.write(` You typed ${this.player.results} \n Correct: ${this.player.correct} \n Incorrect: ${this.player.incorrect}`);
-    let WPM = this.calculateWordsPerMinute(this.game.text, this.player.startTime, this.player.endTime);
-    this.player.wordsPerMinute = WPM;
+  calculateWordsPerMinute(){
+    const wordsArray = this.stringToType.split(' ');
+    const length = wordsArray.length;
+    const time = this.computeTimeInMinutes();
+    return length/time;
+  }
+
+  computeTimeInMinutes(){
+    return (this.player.endTime - this.player.startTime)/ONE_MINUTE;
+  }
+
+  computeTimeInSeconds(){
+    return (this.player.endTime - this.player.startTime)/ONE_SECOND;
+  }
+
+  endTheGame() {
+    stdout.write(`\nYou took ${this.computeTimeInSeconds()} Seconds`);
+    stdout.write(`\nYou typed ${this.player.typedString} \n Correct Keys: ${this.player.correctEntries} \n Incorrect Keys: ${this.player.incorrectEntries}`);
+    this.player.wordsPerMinute = this.calculateWordsPerMinute();
     this.player.finished = true;
-    console.log(this.game);
-    server.emit('player-finished', this.game);
+    server.emit('player-finished', this.player);
 
     //add data to DB
+  }
+  correctKeyTyped(key){
+    this.player.typedStringInBooleanForm += INDICATE_CORRECT_KEYPRESS;
+    this.player.typedString += key;
+    this.player.correctEntries++;
+    stdout.write(key.correct);
+  }
+
+  incorrectKeyTyped(key){
+    this.player.typedStringInBooleanForm += INDICATE_INCORRECT_KEYPRESS;
+    this.player.typedString += key;
+    this.player.incorrectEntries++;
+    stdout.write(key.incorrect);
+  }
+
+  stopRecordingUserInput(){
+    if (this.player.currentCursorPosition >= this.stringToType.length){
+      return true;
+    }
+    else{
+      return false;
+    }
   }
 
   init(){
     stdin.setRawMode(true);
     stdin.resume();
     stdin.setEncoding('utf8');
-    //call start from gameModel Class
-    stdout.write(`\n  Start typing:\n ${this.game.text.textType}\n\n`);
+
+    stdout.write(`\nStart typing:\n${this.stringToType}\n\n`);
+
     this.player.startTime = Date.now();
+
     stdin.on('data', (key) => {
       //control + C exits the program
-      if (key === '\u0003') {
-        process.exit();
-      }
-      //Let Delete work to fix errors
-      else if (key === '\u007f'){
-        //if the last letter you typed was wrong...
-        if(this.player.resultsStatus.slice(-1) === 'f'){
-          this.player.incorrect--;
-        }
-        //if the last letter you typed was correct
-        else if (this.player.resultsStatus.slice(-1) === 't'){
-          this.player.correct--;
-        }
-        this.player.results = this.player.results.slice(0, -1);
-        this.player.cursor -= 2;
-        //move the cursor back
-        stdout.write(ansiEscapes.cursorBackward(1));
-      }
-      else if (key === this.game.text[this.player.cursor]) {
-        this.player.resultsStatus += 't';
-        this.player.results += key;
-        this.player.correct++;
-        stdout.write(key.correct);
-      } else {
-        this.player.resultsStatus += 'f';
-        this.player.results += key;
-        this.player.incorrect++;
-        stdout.write(key.incorrect);
-      }
-      this.player.cursor++;
-      //if the user has reached the end of the string, stop reading input
-      if(this.player.cursor >= this.game.text.length){
+      if(this.stopRecordingUserInput()){
         this.player.endTime = Date.now();
-        this.end();
-        if (key === '\u0003') {
+        this.endTheGame();
+      } else {
+        if (key === EXIT_GAME) {
           process.exit();
-        } else {
-          return;
+        }
+        //Let Delete work to fix errors
+        else if (key === DELETE_LAST_ENTRY){
+          //if the last letter you typed was wrong...
+          if(this.player.typedStringInBooleanForm.slice(-1) === INDICATE_INCORRECT_KEYPRESS){
+            this.player.incorrectEntries--;
+          }
+          //if the last letter you typed was correct
+          else if (this.player.typedStringInBooleanForm.slice(-1) === INDICATE_CORRECT_KEYPRESS){
+            this.player.correctEntries--;
+          }
+          this.player.typedString = this.player.typedString.slice(0, -1);
+          this.player.currentCursorPosition -= 1;
+          //move the cursor backone space
+          stdout.write(ansiEscapes.cursorBackward(1));
+        }
+        else {
+          if (key === this.stringToType[this.player.currentCursorPosition]) {
+            this.correctKeyTyped(key);
+          } else {
+            this.incorrectKeyTyped(key);
+          }
+          this.player.currentCursorPosition++;
         }
       }
     });
-    this.player.cursor = 0;
-
+    this.player.currentCursorPosition = 0;
   }
 
 }
 
+
+//intitial prompts to get a player when the socket connects
 clear();
 console.log(
   chalk.blueBright(
@@ -132,19 +156,22 @@ const run = async () => {
 };
 run();
 
-server.on('log', name => {
-  console.log(name);
+
+//Socket listeners
+server.on('log', message => {
+  console.log(message);
 
 });
 
 server.on('new-game', game => {
-  let view = new gameView(game, user);
+  let view = new gameView(game.text, user.username);
   console.log('New Game!');
   view.init();
 });
 
-server.on('end-game', game => {
-  console.log(game);
+server.on('end-game', message => {
+  console.log(message);
+  console.log(`Thank you for playing ${user.username}!\n\n`);
   process.exit();
 });
 
