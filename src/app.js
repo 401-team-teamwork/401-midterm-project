@@ -17,7 +17,7 @@ const notFound = require( './middleware/404.js' );
 
 let user1 = null;
 let user2 = null;
-let game;
+let game = null;
 
 //on connection, prompt login
 //client: on succesful login, emit username or id to the server
@@ -39,21 +39,25 @@ socketIoServer.on('connection', socket => {
     } else {
       user2 = player.username;
     }
-    console.log(user1, user2);
+
     socket.emit('log', player.username);
+
     if (user1 && user2) {
       //start the game
       game = new Game(user1, user2);
-
       socketIoServer.local.emit('new-game', game);
     }
+
+    socket.on('player-finished', (game) => {
+      console.log(game.player1.finished, game.player2.finished);
+
+      if (game.player1.finished && game.player2.finished) {
+        socketIoServer.local.emit('end-game', game);
+      }
+    });
   });
 
-  socketIoServer.on('player-finished', () => {
-    if (game.player1.finished && game.player2.finished) {
-      socketIoServer.local.emit('end-game', game);
-    }
-    });
+
 });
 
 // Prepare the express app

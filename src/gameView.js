@@ -2,8 +2,7 @@
 
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
-const Game = require('./gameModel');
-const server = require('./play.js');
+// const Game = require('./gameModel');
 
 color.setTheme({
   correct: 'green',
@@ -14,10 +13,23 @@ color.setTheme({
 const stdin = process.stdin;
 const stdout = process.stdout;
 
+const socketIo = require('socket.io-client');
+const getUserNameAndPassword = require('./userPrompts').getUserNameAndPassword;
+const clear = require('clear');
+const figlet = require('figlet');
+const chalk = require('chalk');
+
+
+const API_URL = 'http://localhost:8080';
+
+const server = socketIo.connect(`${API_URL}`);
+
+let user;
+
 class gameView{
 
-  constructor(Game, user){
-    this.game = Game;
+  constructor(game, user){
+    this.game = game;
     this.user = user;
     // this.player = player;
     this.player = this.setPlayer();
@@ -45,8 +57,8 @@ class gameView{
     let WPM = this.calculateWordsPerMinute(this.game.text, this.player.startTime, this.player.endTime);
     this.player.wordsPerMinute = WPM;
     this.player.finished = true;
-    stdin.pause();
-    server.emit('player-finished');
+    console.log(this.game);
+    server.emit('player-finished', this.game);
 
     //add data to DB
   }
@@ -93,15 +105,47 @@ class gameView{
       //if the user has reached the end of the string, stop reading input
       if(this.player.cursor >= this.game.text.length){
         this.player.endTime = Date.now();
-        // stdin.pause();
         this.end();
-
+        if (key === '\u0003') {
+          process.exit();
+        } else {
+          return;
+        }
       }
     });
     this.player.cursor = 0;
+
   }
+
 }
 
+clear();
+console.log(
+  chalk.blueBright(
+    figlet.textSync('SUPERTYPE :   REVOLUTION', {font:'ANSI Shadow', horizontalLayout: 'full' })
+  )
+);
 
+const run = async () => {
+  user = await getUserNameAndPassword();
+  server.emit('new-player', user);
+};
+run();
+
+server.on('log', name => {
+  console.log(name);
+
+});
+
+server.on('new-game', game => {
+  let view = new gameView(game, user);
+  console.log('New Game!');
+  view.init();
+});
+
+server.on('end-game', game => {
+  console.log(game);
+  process.exit();
+});
 
 module.exports = gameView;
