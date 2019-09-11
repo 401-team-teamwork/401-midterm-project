@@ -3,8 +3,8 @@
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
 const Game = require('./gameModel');
-const statsDB = require('./auth/statistics-model');
-const User = require('./auth/users-model');
+// const User = require('./auth/users-model');
+// const Game = require('./gameModel');
 
 color.setTheme({
   correct: 'green',
@@ -15,18 +15,31 @@ color.setTheme({
 const stdin = process.stdin;
 const stdout = process.stdout;
 
+const socketIo = require('socket.io-client');
+const getUserNameAndPassword = require('./userPrompts').getUserNameAndPassword();
+const clear = require('clear');
+const figlet = require('figlet');
+const chalk = require('chalk');
+
+
+const API_URL = 'http://localhost:8080';
+
+const server = socketIo.connect(`${API_URL}`);
+
+let user;
+
 class gameView{
 
-  constructor(Game, user){
-    this.game = Game;
+  constructor(game, user){
+    this.game = game;
     this.user = user;
     // this.player = player;
     this.player = this.setPlayer();
   }
   //check the user.name against game.player.user
+
   setPlayer(){
-    if(this.user === this.game.player2.user){
-      console.log(this.user, this.game.player1.user);
+    if(this.user.username === this.game.player1.user){
       return this.game.player1;
     } else {
       return this.game.player2;
@@ -45,9 +58,10 @@ class gameView{
     stdout.write(` You typed ${this.player.results} \n Correct: ${this.player.correct} \n Incorrect: ${this.player.incorrect}`);
     let WPM = this.calculateWordsPerMinute(this.game.text, this.player.startTime, this.player.endTime);
     this.player.wordsPerMinute = WPM;
+    this.player.finished = true;
     console.log(this.game);
-    sendGameStats(WPM);
-    updateUserStats(username);
+    server.emit('player-finished', this.game);
+    // updateUserStats(this.player.correct, this.player.incorrect, WPM);
     //add data to DB
   }
 
@@ -94,14 +108,68 @@ class gameView{
       //if the user has reached the end of the string, stop reading input
       if(this.player.cursor >= this.game.text.length){
         this.player.endTime = Date.now();
-        // stdin.pause();
         this.end();
-
+        if (key === '\u0003') {
+          process.exit();
+        } else {
+          return;
+        }
       }
     });
     this.player.cursor = 0;
+
   }
+
 }
+
+clear();
+console.log(
+  chalk.blueBright(
+    figlet.textSync('SUPERTYPE :   REVOLUTION', {font:'ANSI Shadow', horizontalLayout: 'full' })
+  )
+);
+
+const run = async () => {
+  user = await getUserNameAndPassword();
+  server.emit('new-player', user);
+};
+run();
+
+server.on('log', name => {
+  console.log(name);
+
+});
+
+server.on('new-game', game => {
+  let view = new gameView(game, user);
+  console.log('New Game!');
+  view.init();
+});
+
+server.on('end-game', game => {
+  console.log(game);
+  process.exit();
+});
+// this function will apply new game statistics to a specific player.
+function updateUserStats(username, correct, incorrect, WPM) {
+  if(User.findOne({username: username})) {
+    User.stats.push({lettersCorrect: correct});
+    User.stats.push({lettersIncorrect: incorrect});
+    User.stats.push({wordsPerMinute: WPM});
+  }
+  else{
+    console.error(username);
+  }
+
+}
+
+
+
+// function to calculate a point value that is used to determine a winning player. needs more work.
+function getPlayerPoints(incorrect, WPM) {
+  return WPM - incorrect;
+}
+
 
 
 

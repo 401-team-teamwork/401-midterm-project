@@ -1,12 +1,4 @@
 'use strict';
-//-----------------------
-
-
-// function getUserWithStats(username){
-//   return User.findOne({ username: username })
-//     .populate('stats');}
-
-//----------------------------
 
 
 
@@ -28,10 +20,9 @@ const usedTokens = new Set();
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
-  stats: [{
-    type: mongoose.Schema.Types.ObjectID,
-    ref: 'stats',
-  }],
+  stats: [
+
+  ],
 });
 
 

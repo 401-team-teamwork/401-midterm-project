@@ -17,6 +17,7 @@ class Game {
       //this string will track if each letter is correct or incorrect as entered by the user
       resultsStatus: '',
       wordsPerMinute: 0,
+      finished: false,
     };
     this.player2 = {
       user: user2,
@@ -29,6 +30,7 @@ class Game {
       //this string will track if each letter is correct or incorrect as entered by the user
       resultsStatus: '',
       wordsPerMinute: 0,
+      finished: false,
     };
     this.text = this.generateString();
   }
