@@ -3,7 +3,7 @@
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
 const socketIo = require('socket.io-client');
-const getUserNameAndPassword = require('./userPrompts').getUserNameAndPassword;
+const getUserNameAndPassword = require('./userPrompts').getUserNameAndPassword();
 const clear = require('clear');
 const figlet = require('figlet');
 const chalk = require('chalk');
@@ -66,8 +66,9 @@ class gameView{
     stdout.write(`\nYou typed ${this.player.typedString} \n Correct Keys: ${this.player.correctEntries} \n Incorrect Keys: ${this.player.incorrectEntries}`);
     this.player.wordsPerMinute = this.calculateWordsPerMinute();
     this.player.finished = true;
+    console.log(this.game);
     server.emit('player-finished', this.player);
-
+    // updateUserStats(this.player.correct, this.player.incorrect, WPM);
     //add data to DB
   }
   correctKeyTyped(key){
@@ -175,5 +176,29 @@ server.on('end-game', message => {
   console.log(`Thank you for playing ${user.username}!\n\n`);
   process.exit();
 });
+// this function will apply new game statistics to a specific player.
+function updateUserStats(username, correct, incorrect, WPM) {
+  if(User.findOne({username: username})) {
+    User.stats.push({lettersCorrect: correct});
+    User.stats.push({lettersIncorrect: incorrect});
+    User.stats.push({wordsPerMinute: WPM});
+  }
+  else{
+    console.error(username);
+  }
+
+}
+
+
+
+// function to calculate a point value that is used to determine a winning player. needs more work.
+function getPlayerPoints(incorrect, WPM) {
+  return WPM - incorrect;
+}
+
+
+
+
+
 
 module.exports = gameView;
