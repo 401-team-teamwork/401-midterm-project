@@ -3,6 +3,8 @@
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
 const Game = require('./gameModel');
+const statsDB = require('./auth/statistics-model');
+const User = require('./auth/users-model');
 
 color.setTheme({
   correct: 'green',
@@ -44,6 +46,8 @@ class gameView{
     let WPM = this.calculateWordsPerMinute(this.game.text, this.player.startTime, this.player.endTime);
     this.player.wordsPerMinute = WPM;
     console.log(this.game);
+    sendGameStats(WPM);
+    updateUserStats(username);
     //add data to DB
   }
 
@@ -83,6 +87,7 @@ class gameView{
         this.player.resultsStatus += 'f';
         this.player.results += key;
         this.player.incorrect++;
+
         stdout.write(key.incorrect);
       }
       this.player.cursor++;
@@ -97,6 +102,8 @@ class gameView{
     this.player.cursor = 0;
   }
 }
+
+
 
 
 

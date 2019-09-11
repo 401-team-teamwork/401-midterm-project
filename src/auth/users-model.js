@@ -1,14 +1,6 @@
 'use strict';
 //-----------------------
-// const grabGameStats = function(gameStats) {
-//   let user = User.gameStats;
-//   gameStats = [
-//     user.WPM = 5,
-//     user.Correct = correct,
-//     user.Errors = incorrect,
-//   ];
-//   return gameStats;
-// };
+
 
 // function getUserWithStats(username){
 //   return User.findOne({ username: username })
@@ -36,13 +28,12 @@ const usedTokens = new Set();
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
-  stats: [
-    {WPM: {type: Number}},
-    {Errors: {type:Number}},
-    {Correct: {type:Number}},
-    {type: mongoose.Schema.Types.ObjectID,
-      ref: 'stats'}],
+  stats: [{
+    type: mongoose.Schema.Types.ObjectID,
+    ref: 'stats',
+  }],
 });
+
 
 
 
