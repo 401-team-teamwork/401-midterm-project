@@ -5,46 +5,23 @@ const player = require('./playerModel');
 
 
 class Game {
-  constructor(user1, user2){
-    this.player1 = {
-      user: user1,
-      cursor: 0,
-      results: '',
-      correct: 0,
-      incorrect: 0,
-      startTime: null,
-      endTime: null,
-      //this string will track if each letter is correct or incorrect as entered by the user
-      resultsStatus: '',
-      wordsPerMinute: 0,
-      finished: false,
-    };
-    this.player2 = {
-      user: user2,
-      cursor: 0,
-      results: '',
-      correct: 0,
-      incorrect: 0,
-      startTime: null,
-      endTime: null,
-      //this string will track if each letter is correct or incorrect as entered by the user
-      resultsStatus: '',
-      wordsPerMinute: 0,
-      finished: false,
-    };
+  constructor(){
     this.text = this.generateString();
+    this.player1 = null;
+    this.player2 = null;
+    this.winner = null;
   }
 
   generateString(){
     return sG.take(1);
   }
 
-
-  calculateWinner(player1WPM, player2WPM){
-    if(this.player1.wordsPerMinute > this.player2.wordsPerMinute){
-      return this.player1;
-    } else if (this.player2.wordsPerMinute > this.player1.wordsPerMinute){
-      return this.player2;
+  //naive winner calculation
+  calculateWinner(player1, player2){
+    if(player1.wordsPerMinute > player2.wordsPerMinute){
+      return player1;
+    } else if (player2.wordsPerMinute > player1.wordsPerMinute){
+      return player2;
     } else {
       return 'Tie';
     }
