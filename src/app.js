@@ -14,19 +14,9 @@ const notFound = require( './middleware/404.js' );
 
 //Sockets
 
-
 let user1 = null;
 let user2 = null;
 let game = null;
-
-//on connection, prompt login
-//client: on succesful login, emit username or id to the server
-//instantiate a new game
-//send a message to the client that contains the game instance
-//clinet initiates a new view, passing in player and game
-//client: on game over, emit to server
-//server: when both clients complete the game, run game end logic
-//emit results to the client
 
 socketIoServer.on('connection', socket => {
   console.log('Connected', socket.id);
@@ -40,19 +30,25 @@ socketIoServer.on('connection', socket => {
       user2 = player.username;
     }
 
-    socket.emit('log', player.username);
+    socket.emit('log', `Welcome ${player.username}`);
 
     if (user1 && user2) {
       //start the game
-      game = new Game(user1, user2);
+      game = new Game();
       socketIoServer.local.emit('new-game', game);
     }
 
-    socket.on('player-finished', (game) => {
-      console.log(game.player1.finished, game.player2.finished);
-
-      if (game.player1.finished && game.player2.finished) {
-        socketIoServer.local.emit('end-game', game);
+    socket.on('player-finished', (player) => {
+      if(game.player1 === null){
+        game.player1 = player;
+      } else if (game.player2 === null){
+        game.player2 = player;
+      }
+      if (game.player1 !== null && game.player2 !== null) {
+        game.winner = game.calculateWinner(game.player1, game.player2)
+        socketIoServer.local.emit('end-game', `\n\nAnd the winner is: ${game.winner.name}`);
+        user1 = null;
+        user2 = null;
       }
     });
   });
