@@ -165,6 +165,7 @@ server.on('log', message => {
 
 server.on('new-game', game => {
   let view = new gameView(game.text, user.username);
+  clear();
   console.log('New Game!');
   view.init();
 });
