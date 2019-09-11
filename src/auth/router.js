@@ -6,7 +6,7 @@
 
 const express = require('express');
 const authRouter = express.Router();
-
+const app = express();
 const User = require('./users-model.js');
 const auth = require('./middleware.js');
 
@@ -45,6 +45,8 @@ authRouter.post('/signin', auth, (req, res, next) => {
 
 });
 
+
+
 /**
  * Sign in an existing and generate permanent key
  * @route POST /key
@@ -58,6 +60,11 @@ authRouter.post('/key', auth, (request, response, next) => {
   let key = request.user.generateToken('key');
   response.status(200).send(key);
 });
+
+app.get('/signin', (request, response, next) => {
+  User.get(request.body);
+});
+
 
 
 
