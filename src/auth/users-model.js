@@ -1,4 +1,22 @@
 'use strict';
+//-----------------------
+// const grabGameStats = function(gameStats) {
+//   let user = User.gameStats;
+//   gameStats = [
+//     user.WPM = 5,
+//     user.Correct = correct,
+//     user.Errors = incorrect,
+//   ];
+//   return gameStats;
+// };
+
+// function getUserWithStats(username){
+//   return User.findOne({ username: username })
+//     .populate('stats');}
+
+//----------------------------
+
+
 
 /**
  * User Model
@@ -9,15 +27,24 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-
 const SECRET = process.env.SECRET;
 
 const usedTokens = new Set();
 
+
+
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
+  stats: [
+    {WPM: {type: Number}},
+    {Errors: {type:Number}},
+    {Correct: {type:Number}},
+    {type: mongoose.Schema.Types.ObjectID,
+      ref: 'stats'}],
 });
+
+
 
 users.pre('save', function(next) {
   bcrypt.hash(this.password, 10)
@@ -27,8 +54,6 @@ users.pre('save', function(next) {
     })
     .catch(console.error);
 });
-
-
 
 /**
  *
@@ -82,9 +107,5 @@ users.methods.generateToken = function(type) {
   };
   return jwt.sign(token, SECRET,);
 };
-
-// users.methods.generateKey = function() {
-//   return this.generateToken('key');
-// };
 
 module.exports = mongoose.model('users', users);
