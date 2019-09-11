@@ -3,6 +3,7 @@
 const color = require('colors');
 const ansiEscapes = require('ansi-escapes');
 const Game = require('./gameModel');
+const server = require('./play.js');
 
 color.setTheme({
   correct: 'green',
@@ -22,9 +23,9 @@ class gameView{
     this.player = this.setPlayer();
   }
   //check the user.name against game.player.user
+
   setPlayer(){
-    if(this.user === this.game.player2.user){
-      console.log(this.user, this.game.player1.user);
+    if(this.user.username === this.game.player1.user){
       return this.game.player1;
     } else {
       return this.game.player2;
@@ -43,7 +44,10 @@ class gameView{
     stdout.write(` You typed ${this.player.results} \n Correct: ${this.player.correct} \n Incorrect: ${this.player.incorrect}`);
     let WPM = this.calculateWordsPerMinute(this.game.text, this.player.startTime, this.player.endTime);
     this.player.wordsPerMinute = WPM;
-    console.log(this.game);
+    this.player.finished = true;
+    stdin.pause();
+    server.emit('player-finished');
+
     //add data to DB
   }
 

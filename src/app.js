@@ -17,6 +17,7 @@ const notFound = require( './middleware/404.js' );
 
 let user1 = null;
 let user2 = null;
+let game;
 
 //on connection, prompt login
 //client: on succesful login, emit username or id to the server
@@ -31,39 +32,29 @@ socketIoServer.on('connection', socket => {
   console.log('Connected', socket.id);
 
   socket.on('new-player', player => {
-    if(user1 !== null && user2 !== null){
+    if (user1 !== null && user2 !== null) {
       socket.close();
-    }
-    else if(user1 === null){
-      user1 = {name: 'trae'};
+    } else if (user1 === null) {
+      user1 = player.username;
     } else {
-      user2 = {name: 'Josh'};
+      user2 = player.username;
     }
     console.log(user1, user2);
-    socket.emit('log', player.name);
-    if(user1 && user2 ){
+    socket.emit('log', player.username);
+    if (user1 && user2) {
       //start the game
-      let game = new Game(user1, user2);
-      console.log(game.player2, game.player1);
+      game = new Game(user1, user2);
+
       socketIoServer.local.emit('new-game', game);
     }
-
   });
 
-
-
-  socket.on('file-save', object => {
-    console.log('File has been saved');
-    console.log(object);
-    socket.broadcast.emit('file-save', object.saved);
-  });
-
-  socket.on('file-error', error => {
-    socket.broadcast.emit('file-error', error);
-  });
-
+  socketIoServer.on('player-finished', () => {
+    if (game.player1.finished && game.player2.finished) {
+      socketIoServer.local.emit('end-game', game);
+    }
+    });
 });
-
 
 // Prepare the express app
 const app = express();
