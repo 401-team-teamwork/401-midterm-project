@@ -3,7 +3,7 @@
 const inquirer = require('inquirer');
 
 module.exports = {
-  getUserNameAndPassword: () => {
+  initialUserPrompts: () => {
     let questions = [
       {
         name: 'username',
@@ -30,10 +30,19 @@ module.exports = {
           }
         },
       },
+      {
+        name:'keyboardInput',
+        type: 'input',
+        message: 'Select your keyboard (QWERTY, Dvorak, Colemak) ',
+        validate: function(layout){
+          if (layout.toLowerCase() === 'qwerty' || layout.toLowerCase() === 'dvorak' || layout.toLowerCase() === 'colemak') {
+            return true;
+          } else {
+            return 'Please Pick a Valid Keyboard Layout';
+          }
+        },
+      },
     ];
-
     return inquirer.prompt(questions);
   },
 };
-
-
