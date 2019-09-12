@@ -21,7 +21,7 @@ const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
   stats: [
-
+    {Correct: {type: Number}},
   ],
 });
 
@@ -48,6 +48,8 @@ users.statics.authenticateBasic = function(auth) {
     .then( user => user && user.comparePassword(auth.password) )
     .catch(error => {throw error;});
 };
+
+
 
 /**
  *

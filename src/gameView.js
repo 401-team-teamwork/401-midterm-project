@@ -70,7 +70,7 @@ class gameView{
     console.log(this.game);
     server.emit('player-finished', this.player);
     //add data to DB
-    this.getUserStats();
+    this.getUserStats(this.player.name);
   }
 
   correctKeyTyped(key){
@@ -87,10 +87,6 @@ class gameView{
     stdout.write(key.incorrect);
   }
 
-  stringifyFunction() {
-    console.log(JSON.stringify({username: this.player.name}));
-  }
-
   stopRecordingUserInput(){
     if (this.player.currentCursorPosition >= this.stringToType.length){
       return true;
@@ -100,19 +96,10 @@ class gameView{
 
 
   getUserStats() {
-    return User.findOne({username: this.player.name})
-      .then(this.updateUserStats)
-      .catch(err => {
-        console.error(err);
-      });
+    console.log(this.player.name);
+    User.findOne({}, {username: (this.player.name)}).then( (user)=> {console.log(user); user.stats.push({Correct: 3}); User.save();});
   }
 
-  updateUserStats() {
-    User.stats.push({lettersCorrect: this.player.correctEntries});
-    User.stats.push({lettersIncorrect: this.player.incorrectEntries});
-    User.stats.push({wordsPerMinute: this.player.wordsPerMinute});
-    console.log(User.findOne({username: this.player.name}));
-  }
 
   init(){
     stdin.setRawMode(true);
@@ -173,7 +160,6 @@ console.log(
 
 const run = async () => {
   user = await getUserNameAndPassword();
-  this.stringifyFunction();
   server.emit('new-player', user);
 
 };
@@ -199,8 +185,6 @@ server.on('end-game', message => {
   console.log(`Thank you for playing ${user.username}!\n\n`);
   process.exit();
 });
-
-// this function will apply new game statistics to a specific player.
 
 
 

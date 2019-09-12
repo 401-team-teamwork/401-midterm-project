@@ -7,6 +7,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const socketIoServer = require('socket.io')(8080);
 const Game = require('./gameModel');
+const users = require('./auth/users-model');
 
 // Esoteric Resources
 const errorHandler = require( './middleware/error.js');
@@ -74,6 +75,12 @@ app.use(express.urlencoded({extended:true}));
 // Home Route
 app.get('/', (request, response) => {
   response.status(200).send('App is up!');
+});
+
+app.get('/db', (request, response) => {
+  console.log(users);
+  response.send(users);
+
 });
 
 app.use(authRouter);

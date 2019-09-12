@@ -6,7 +6,6 @@
 
 const express = require('express');
 const authRouter = express.Router();
-const app = express();
 const User = require('./users-model.js');
 const auth = require('./middleware.js');
 
@@ -41,7 +40,7 @@ authRouter.post('/signup', (req, res, next) => {
  */
 authRouter.post('/signin', auth, (req, res, next) => {
   res.cookie('auth', req.token);
-  res.status(200).send(req.token);
+  res.status(200).send(req.user);
 
 });
 
@@ -61,8 +60,9 @@ authRouter.post('/key', auth, (request, response, next) => {
   response.status(200).send(key);
 });
 
-app.get('/signin', (request, response, next) => {
-  User.get(request.body);
+authRouter.get('/db', (request, response, next) => {
+  User.findOne(request.body);
+  response.send(request.body);
 });
 
 
