@@ -59,9 +59,18 @@ authRouter.post('/key', auth, (request, response, next) => {
   response.status(200).send(key);
 });
 
+authRouter.post('/update', auth, (request, response, next) => {
+  let record = {};
+  record.incorrectEntries = request.body.incorrectEntries;
+  record.correctEntries = request.body.correctEntries;
+  record.wordsPerMinute = request.body.wordsPerMinute;
+  request.user.stats.push(record);
+  console.log(request.user._id, request.user);
+  User.findByIdAndUpdate(request.user._id, request.user, {new: true})
+    .then( result => response.status(200).json(result) )
+    .catch( next );
 
-
-
+});
 
 module.exports = authRouter;
 

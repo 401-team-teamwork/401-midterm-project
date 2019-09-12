@@ -18,7 +18,7 @@ class Game {
 
   //naive winner calculation
   calculateWinner(player1, player2){
-    if(player1.wordsPerMinute > player2.wordsPerMinute){
+    if((player1.wordsPerMinute - player1.incorrectEntries) > (player2.wordsPerMinute - player2.incorrectEntries)){
       return player1;
     } else if (player2.wordsPerMinute > player1.wordsPerMinute){
       return player2;

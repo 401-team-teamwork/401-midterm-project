@@ -1,7 +1,5 @@
 'use strict';
 
-
-
 /**
  * User Model
  * @module src/auth/users-model
@@ -13,20 +11,11 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.SECRET;
 
-const usedTokens = new Set();
-
-
-
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
-  stats: [
-
-  ],
+  stats: [],
 });
-
-
-
 
 users.pre('save', function(next) {
   bcrypt.hash(this.password, 10)
@@ -55,15 +44,14 @@ users.statics.authenticateBasic = function(auth) {
  * @returns {Promise<never>|void|Query}
  */
 users.statics.authenticateToken = function(token){
-
   try {
     let parsedToken = jwt.verify(token, SECRET);
-    if (parsedToken.type !== 'key'){
-      usedTokens.add(token);
-    }
     let query = {_id: parsedToken.id};
     return this.findOne(query);
-  } catch (error) { throw new Error('Invalid Token'); }
+  }
+  catch (error) {
+    throw new Error('Invalid Token');
+  }
 };
 
 /**
@@ -82,7 +70,6 @@ users.methods.comparePassword = function(password) {
  * @returns {undefined|*}
  */
 users.methods.generateToken = function(type) {
-  
   let token = {
     id: this._id,
     type: type || 'regular',
